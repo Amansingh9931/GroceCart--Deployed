@@ -1,0 +1,21 @@
+services:
+
+  backend:
+    build:
+      context: ./Backend
+    container_name: grocerycart-backend
+    env_file:
+      - ./Backend/.env
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: grocerycart-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
