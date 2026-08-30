@@ -19,6 +19,15 @@ pipeline {
             }
         }
 
+	stage('Frontend Lint') {
+            steps {
+                sh '''
+                    cd Frontend
+                    npm run lint
+                '''
+            }
+        }
+
         stage('Backend Dependencies') {
             steps {
                 sh '''
