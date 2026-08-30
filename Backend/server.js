@@ -41,6 +41,14 @@ app.use("/api/address", addressRouter);
 app.use("/api/delivery", deliveryRouter);
 
 
+// Health check
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "GroceryCart Backend"
+  });
+});
+
 //test route
 // app.get("/", (req, res) => {
 //   res.send("Hello World!");
