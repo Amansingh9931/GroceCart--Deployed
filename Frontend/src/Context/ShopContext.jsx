@@ -5,7 +5,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export const ShopContext = createContext();
-export const backend_URL = import.meta.env.VITE_BACKEND_URL;
+
+const backend_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ShopCartProvider = ({ children }) => {
   const currency = "₹";
@@ -153,8 +154,24 @@ const ShopCartProvider = ({ children }) => {
 
   // load products once
   useEffect(() => {
-    getProductData();
-  }, []);
+  const loadProducts = async () => {
+    try {
+      const res = await axios.get(`${backend_URL}/api/products/list`);
+
+      if (res.data?.success) {
+        setProducts(res.data.products);
+      } else {
+        toast.error(res.data.message || "Failed to load products");
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Error loading products");
+    }
+  };
+
+  loadProducts();
+}, [backend_URL]);
+
 
   // load guest cart from localStorage when no token
   useEffect(() => {
@@ -168,7 +185,7 @@ const ShopCartProvider = ({ children }) => {
         console.log("Error parsing stored cart:", err);
       }
     }
-  }, []);
+  }, [token]);
 
   // persist guest cart to localStorage when not logged in
   useEffect(() => {

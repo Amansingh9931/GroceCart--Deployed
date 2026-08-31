@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 
 export default function DeliveryHistory() {
-  const { backend_URL, token, currency } = useContext(ShopContext);
+  const { backend_URL, token } = useContext(ShopContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrders, setExpandedOrders] = useState({});

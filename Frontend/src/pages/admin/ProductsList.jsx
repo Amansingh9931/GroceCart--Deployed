@@ -29,7 +29,7 @@ export default function ProductsList() {
     try {
       await api.delete(`/api/admin/products/delete/${id}`);
       setProducts((p) => p.filter((x) => x._id !== id));
-    } catch (e) {
+    } catch{
       alert("Delete failed");
     }
   };

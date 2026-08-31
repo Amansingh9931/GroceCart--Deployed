@@ -5,7 +5,7 @@ import api from "../../Api/axios.js";
 import { Package, Users, Truck, BarChart3, LayoutDashboard } from "lucide-react";
 
 export default function AdminDash() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalDeliveryBoys: 0,
@@ -13,11 +13,7 @@ export default function AdminDash() {
     totalAccounts: 0,
   });
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+const fetchStats = async () => {
     try {
       const res = await api.get("/api/admin/stats");
       if (res.data && res.data.success) {
@@ -27,6 +23,11 @@ export default function AdminDash() {
       console.error("Error fetching stats:", err);
     }
   };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
 
   return (
     <div className="flex min-h-screen bg-gray-100">

@@ -9,49 +9,15 @@ import { ShoppingCart, Heart } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { addToCart, backend_URL, currency } = useContext(ShopContext);
   const redirected = useRef(false);
 
-  const [cartCount, setCartCount] = useState(0);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSizes, setSelectedSizes] = useState({});
 
-  useEffect(() => {
-    const computeCount = () => {
-      try {
-        const stored =
-          localStorage.getItem("cartItems") || localStorage.getItem("cart") || "{}";
-        const parsed = JSON.parse(stored);
-
-        let count = 0;
-
-        if (Array.isArray(parsed)) {
-          // array of items
-          count = parsed.reduce((s, it) => s + (it.quantity || 1), 0);
-        } else if (parsed && typeof parsed === "object") {
-          // object mapping productId -> size -> qty (shape used in Cart.jsx)
-          for (const pid in parsed) {
-            const sizes = parsed[pid];
-            if (!sizes) continue;
-            for (const sz in sizes) {
-              count += Number(sizes[sz] || 0);
-            }
-          }
-        }
-
-        setCartCount(count);
-      } catch (e) {
-        setCartCount(0);
-      }
-    };
-
-    computeCount();
-    window.addEventListener("storage", computeCount);
-    return () => window.removeEventListener("storage", computeCount);
-  }, []);
-
+  
   // FETCH PRODUCTS
   useEffect(() => {
     const fetchProducts = async () => {
@@ -73,11 +39,7 @@ export default function Home() {
     fetchProducts();
   }, [backend_URL]);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
+  
   // Redirect logged-in users to their dashboard (ONLY ONCE)
   useEffect(() => {
     if (authLoading) return; // Wait for auth to load
@@ -274,4 +236,3 @@ export default function Home() {
     </div>
   );
 }
-
