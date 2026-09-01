@@ -1,6 +1,13 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_USER = 'YOUR_DOCKERHUB_USERNAME'
+
+        FRONTEND_IMAGE = "${aura9931}/grocecart-frontend"
+        BACKEND_IMAGE  = "${aura9931}/grocecart-backend"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -19,7 +26,7 @@ pipeline {
             }
         }
 
-	stage('Frontend Lint') {
+        stage('Frontend Lint') {
             steps {
                 sh '''
                     cd Frontend
@@ -37,34 +44,82 @@ pipeline {
             }
         }
 
-	stage('Deploy with Ansible') {
-    steps {
-        withCredentials([
-            string(
-                credentialsId: 'ansible-vault-password',
-                variable: 'VAULT_PASSWORD'
-            )
-        ]) {
-            sh '''
-                set -e
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build \
+                        -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} \
+                        -t ${FRONTEND_IMAGE}:latest \
+                        ./Frontend
 
-                printf '%s\\n' "$VAULT_PASSWORD" | \
-                ssh -o StrictHostKeyChecking=no \
-                ubuntu@172.31.43.33 \
-                'cat > /tmp/grocerycart-vault-password && chmod 600 /tmp/grocerycart-vault-password'
+                    docker build \
+                        -t ${BACKEND_IMAGE}:${BUILD_NUMBER} \
+                        -t ${BACKEND_IMAGE}:latest \
+                        ./Backend
+                '''
+            }
+        }
 
-                ssh -o StrictHostKeyChecking=no \
-                ubuntu@172.31.43.33 \
-                'cd ~/grocerycart-ansible && \
-                 ansible-playbook -i inventory.ini deploy.yml \
-                 --vault-password-file /tmp/grocerycart-vault-password'
+        stage('Docker Hub Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            --username "$DOCKER_USERNAME" \
+                            --password-stdin
 
-                ssh -o StrictHostKeyChecking=no \
-                ubuntu@172.31.43.33 \
-                'rm -f /tmp/grocerycart-vault-password'
-            '''
+                        docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                        docker push ${FRONTEND_IMAGE}:latest
+
+                        docker push ${BACKEND_IMAGE}:${BUILD_NUMBER}
+                        docker push ${BACKEND_IMAGE}:latest
+
+                        docker logout
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy with Ansible') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'ansible-vault-password',
+                        variable: 'VAULT_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+
+                        printf '%s\\n' "$VAULT_PASSWORD" | \
+                        ssh -o StrictHostKeyChecking=no \
+                        ubuntu@172.31.43.33 \
+                        'cat > /tmp/grocerycart-vault-password && chmod 600 /tmp/grocerycart-vault-password'
+
+                        ssh -o StrictHostKeyChecking=no \
+                        ubuntu@172.31.43.33 \
+                        'cd ~/grocerycart-ansible && \
+                         ansible-playbook -i inventory.ini deploy.yml \
+                         --vault-password-file /tmp/grocerycart-vault-password'
+
+                        ssh -o StrictHostKeyChecking=no \
+                        ubuntu@172.31.43.33 \
+                        'rm -f /tmp/grocerycart-vault-password'
+                    '''
+                }
+            }
         }
     }
-}
+
+    post {
+        always {
+            sh 'docker image prune -f || true'
+        }
     }
 }
