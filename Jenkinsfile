@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'YOUR_DOCKERHUB_USERNAME'
-
-        FRONTEND_IMAGE = "${aura9931}/grocecart-frontend"
-        BACKEND_IMAGE  = "${aura9931}/grocecart-backend"
+        DOCKERHUB_USERNAME = 'aura9931'
+        FRONTEND_IMAGE = 'aura9931/grocecart-frontend'
+        BACKEND_IMAGE  = 'aura9931/grocecart-backend'
     }
 
     stages {
@@ -70,8 +69,10 @@ pipeline {
                     )
                 ]) {
                     sh '''
+                        set -e
+
                         echo "$DOCKER_PASSWORD" | docker login \
-                            --username "$DOCKER_USERNAME" \
+                            -u "$DOCKER_USERNAME" \
                             --password-stdin
 
                         docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}
