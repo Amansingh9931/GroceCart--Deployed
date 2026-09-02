@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grocerycart-backend
+  namespace: grocerycart
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: grocerycart-backend
+
+  template:
+    metadata:
+      labels:
+        app: grocerycart-backend
+
+    spec:
+      containers:
+        - name: backend
+          image: aura9931/grocecart-backend:19
+
+          ports:
+            - containerPort: 5000
+
+          envFrom:
+            - secretRef:
+                name: grocerycart-backend-secret
+
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

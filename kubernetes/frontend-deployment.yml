@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grocerycart-frontend
+  namespace: grocerycart
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: grocerycart-frontend
+
+  template:
+    metadata:
+      labels:
+        app: grocerycart-frontend
+
+    spec:
+      containers:
+        - name: frontend
+          image: aura9931/grocecart-frontend:19
+
+          ports:
+            - containerPort: 80
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+
