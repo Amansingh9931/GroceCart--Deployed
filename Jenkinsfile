@@ -118,7 +118,70 @@ pipeline {
                 }
             }
         }
+	
+	stage('Deploy to Kubernetes') {
+    steps {
+        sh '''
+            set -e
+
+            echo "=========================================="
+            echo "Deploying to Kubernetes"
+            echo "Backend:  ${BACKEND_IMAGE}:${BUILD_NUMBER}"
+            echo "Frontend: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+            echo "=========================================="
+
+            ssh -o StrictHostKeyChecking=no \
+                ubuntu@172.31.39.240 "
+                    set -e
+
+                    echo 'Updating backend...'
+                    kubectl -n grocerycart set image \
+                        deployment/grocerycart-backend \
+                        backend=${BACKEND_IMAGE}:${BUILD_NUMBER}
+
+                    echo 'Updating frontend...'
+                    kubectl -n grocerycart set image \
+                        deployment/grocerycart-frontend \
+                        frontend=${FRONTEND_IMAGE}:${BUILD_NUMBER}
+
+                    echo 'Waiting for backend rollout...'
+                    kubectl -n grocerycart rollout status \
+                        deployment/grocerycart-backend \
+                        --timeout=180s
+
+                    echo 'Waiting for frontend rollout...'
+                    kubectl -n grocerycart rollout status \
+                        deployment/grocerycart-frontend \
+                        --timeout=180s
+
+                    echo 'Kubernetes deployments:'
+                    kubectl -n grocerycart get deployments
+
+                    echo 'Kubernetes pods:'
+                    kubectl -n grocerycart get pods
+                "
+        '''
     }
+}
+
+stage('Kubernetes Health Check') {
+    steps {
+        sh '''
+            set -e
+
+            echo "Checking Kubernetes application health..."
+
+            ssh -o StrictHostKeyChecking=no \
+                ubuntu@172.31.39.240 \
+                "curl -f http://localhost/api/health"
+
+            echo ""
+            echo "Kubernetes application is healthy."
+        '''
+    }
+}
+    }
+
 
     post {
         always {
