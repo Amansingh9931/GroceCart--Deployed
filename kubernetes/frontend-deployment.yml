@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: aura9931/grocecart-frontend:19
+          image: aura9931/grocecart-frontend:23
 
           ports:
             - containerPort: 80

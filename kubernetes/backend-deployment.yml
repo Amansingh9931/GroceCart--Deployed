@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: aura9931/grocecart-backend:19
+          image: aura9931/grocecart-backend:23
 
           ports:
             - containerPort: 5000
