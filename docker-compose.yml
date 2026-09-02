@@ -1,8 +1,7 @@
 services:
 
   backend:
-    build:
-      context: ./Backend
+    image: ${BACKEND_IMAGE:-aura9931/grocecart-backend:latest}
     container_name: grocerycart-backend
     env_file:
       - ./Backend/.env
@@ -11,8 +10,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./Frontend
+    image: ${FRONTEND_IMAGE:-aura9931/grocecart-frontend:latest}
     container_name: grocerycart-frontend
     ports:
       - "80:80"
