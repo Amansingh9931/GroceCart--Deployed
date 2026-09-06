@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 export const ShopContext = createContext();
 
-const backend_URL = import.meta.env.VITE_BACKEND_URL;
+const backend_URL = import.meta.env.VITE_BACKEND_URL || "";
 
 const ShopCartProvider = ({ children }) => {
   const currency = "₹";
   const delivery_fee = 10;
-  const backend_URL = import.meta.env.VITE_BACKEND_URL;
+  const backend_URL = import.meta.env.VITE_BACKEND_URL || "";
 
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
